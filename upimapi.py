@@ -6,7 +6,7 @@ By João Sequeira
 
 Mar 2020
 """
-
+# To Do July 2025: implement aditional retry/wait logic in the batch processing loops inside the get_uniprot_information, basic_idmapping_batch processing loops
 import json
 from argparse import ArgumentParser, ArgumentTypeError
 import os
@@ -523,14 +523,14 @@ def select_columns(columns):
     :return: taxids_cols: list - of taxid columns to retrieve information from
     """
     if columns is None:
+        # The following columns were elimintaed in order to work with MOSCA 'Taxonomic lineage (SUPERKINGDOM)', 'Taxonomic lineage (PHYLUM)', 'Taxonomic lineage (CLASS)',
+        #   'Taxonomic lineage (ORDER)', 'Taxonomic lineage (FAMILY)', 'Taxonomic lineage (GENUS)',
+        #    'Taxonomic lineage (SPECIES)', 'Taxonomic lineage IDs (SPECIES)'
         columns = [            # default columns of UPIMAPI
             'Entry', 'Entry Name', 'Organism', 'Organism (ID)', 'Taxonomic lineage', 'Taxonomic lineage (Ids)',
             'Gene Names', 'Protein names', 'EC number', 'Function [CC]', 'Pathway', 'Keywords',
             'Protein existence', 'Gene Ontology (GO)', 'Protein families', 'BRENDA', 'BioCyc', 'CDD', 'eggNOG',
-            'Ensembl', 'InterPro', 'KEGG', 'Pfam', 'Reactome', 'RefSeq', 'UniPathway',
-            'Taxonomic lineage (SUPERKINGDOM)', 'Taxonomic lineage (PHYLUM)', 'Taxonomic lineage (CLASS)',
-            'Taxonomic lineage (ORDER)', 'Taxonomic lineage (FAMILY)', 'Taxonomic lineage (GENUS)',
-            'Taxonomic lineage (SPECIES)', 'Taxonomic lineage IDs (SPECIES)']
+            'Ensembl', 'InterPro', 'KEGG', 'Pfam', 'Reactome', 'RefSeq', 'UniPathway'] 
     tax_cols = [col for col in columns if ('Taxonomic lineage (' in col and col not in [
         'Taxonomic lineage (SPECIES)', 'Taxonomic lineage (Ids)'])]
     taxids_cols = [col for col in columns if (
