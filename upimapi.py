@@ -329,7 +329,7 @@ def basic_idmapping(ids, from_db, to_db):
     return result
 
 
-def basic_idmapping_batch(ids, from_db, to_db, step=1000):
+def basic_idmapping_batch(ids, from_db, to_db, step=1000, max_tries=3, sleep_time=10):
     """
     Allows to retrieve millions of IDs at once, there seems to be some limit causing UniProt's API to fail with
     "Request Entity Too Large for url".
@@ -341,16 +341,22 @@ def basic_idmapping_batch(ids, from_db, to_db, step=1000):
     """
     result = pd.DataFrame()
     for i in tqdm(range(0, len(ids), step), desc='Getting valid UniProt IDs', ascii=' >='):
+    #    done = False
+    #    while not done:
+        j = min(i + step, len(ids))
+        tries = 0
         done = False
-        while not done:
-            j = min(i + step, len(ids))
+        while not done and tries < max_tries:
             try:
                 result = pd.concat([result, basic_idmapping(ids[i:j], from_db, to_db)])
                 done = True
-            except:
-                sleep(3)
+            except Exception as e:
+                tries += 1
+                print(f'Batch {i}-{j} failed ({e}). Retrying ({max_tries-tries} attempts left)...')
+                sleep(sleep_time)
+        if not done:
+            print(f'Batch {i}-{j} failed after {max_tries} attempts. Skipping this batch.')
     return result
-
 
 def basic_idmapping_multiprocess(ids, output, from_db, to_db, step=1000, threads=15):
     result = pd.DataFrame()
@@ -424,9 +430,9 @@ def get_uniprot_information(ids, step=1000, sleep_time=30, columns=None, max_tri
     """
     result = pd.DataFrame()
     for i in tqdm(range(0, len(ids), step), desc=f'Retrieving UniProt information from {len(ids)} IDs'):
+        j = min(i + step, len(ids))
         tries = 0
         done = False
-        j = min(i + step, len(ids))
         while not done and tries < max_tries:
             try:
                 data = uniprot_request(ids[i:j], columns=columns)
@@ -435,10 +441,12 @@ def get_uniprot_information(ids, step=1000, sleep_time=30, columns=None, max_tri
                     result = pd.concat([result, uniprotinfo[uniprotinfo.columns.tolist()]])
                 sleep(sleep_time)
                 done = True
-            except ConnectionError:
-                print(f'ID mapping failed. Remaining tries: {max_tries - tries}')
+            except Exception as e:
                 tries += 1
-                sleep(10)
+                print(f'Batch {i}-{j} failed ({e}). Retrying ({max_tries-tries} attempts left)...')
+                sleep(sleep_time)
+        if not done:
+            print(f'Batch {i}-{j} failed after {max_tries} attempts. Skipping this batch.')
     return result
 
 
