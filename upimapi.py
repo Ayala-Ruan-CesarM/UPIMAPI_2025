@@ -6,7 +6,7 @@ By João Sequeira
 
 Mar 2020
 """
-# To Do July 2025: implement aditional retry/wait logic in the batch processing loops inside the get_uniprot_information, basic_idmapping_batch processing loops
+# It was implement an aditional retry/wait logic in the batch processing loops inside the get_uniprot_information, basic_idmapping_batch processing loops
 import json
 from argparse import ArgumentParser, ArgumentTypeError
 import os
